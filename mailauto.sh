@@ -121,8 +121,9 @@ CreateMailDB()
     Q5="create table aliases (id INT UNSIGNED AUTO_INCREMENT NOT NULL, source VARCHAR(128) NOT NULL, destination VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (source, destination) );"
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
+
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}"
-    #to fix automated login
+
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
     mysql -u root -p "${MYSQL_ROOTPWD}" -e "$SQL"
 
