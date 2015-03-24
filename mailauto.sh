@@ -37,6 +37,30 @@ SetMailDBName()
     VMAILDB=${VMAILDB:-$DEFAULT_DB}
 }
 
+SetDomain()
+{
+    read -p "Please enter your domain (e.g. example.com): " DOMAIN
+
+}
+
+SetMailUser()
+{
+
+    read -p "Please enter a name for the mail account (e.g. for test@example.org you have to enter test): " MAILUSER
+}
+
+SetUserMailPWD()
+{
+
+    read -p "Please enter a password for the mail account itself: " MAILUSERPWD 
+
+    if [[ -n "$MAILUSERPWD" ]]; then
+    MAILUSERCRYPTPASS="$(doveadm pw -p $MAILUSERPWD -s SHA512-CRYPT)"
+fi
+
+}
+
+
 InstallRequiredPackage()
 {
 
@@ -51,7 +75,6 @@ CreateUser()
 
     local VMAIL_DIR="/var/vmail"
 
-    InstallRequiredPackage
 #Add the user for the mail enviroment
 
     if [[ $? -eq 0 ]]
@@ -121,8 +144,9 @@ CreateMailDB()
     Q5="create table aliases (id INT UNSIGNED AUTO_INCREMENT NOT NULL, source VARCHAR(128) NOT NULL, destination VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (source, destination) );"
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
-
-    SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}"
+    Q8="insert into domains (domain) values ('"$DOMAIN"‘);"
+    Q9="insert into users (username, domain, password) values ('"$MAILUSER"', '"$DOMAIN"', '"$MAILUSERCRYPTPASS"');"
+    SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
     mysql -u root -p "${MYSQL_ROOTPWD}" -e "$SQL"
@@ -135,6 +159,10 @@ Main()
     SetDBUsername
     SetDBPassword
     SetMailDBName
+    SetDomain
+    SetMailUser
+    SetUserMailPWD
+InstallRequiredPackage
     CreateUser
     CreateMailDir
     CreatePostfixFile
