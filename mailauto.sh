@@ -149,7 +149,7 @@ CreateMailDB()
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
-    mysql -u root -p "${MYSQL_ROOTPWD}" -e "$SQL"
+    mysql -u root -p"${MYSQL_ROOTPWD}" -e "$SQL"
 
 }
 
