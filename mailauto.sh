@@ -1,6 +1,9 @@
 #!/bin/bash
 
 VIRTUAL_DIR="/etc/postfix/virtual"
+POSTFIX_DIR="/etc/postfix"
+DOVECOT_DIR="/etc/dovecot"
+
 
 IsRoot()
 {
@@ -55,7 +58,7 @@ SetUserMailPWD()
     read -p "Please enter a password for the mail account itself: " MAILUSERPWD 
 
     if [[ -n "$MAILUSERPWD" ]]; then
-    MAILUSERCRYPTPASS="$(doveadm pw -p $MAILUSERPWD -s SHA512-CRYPT)"
+    MAILUSERCRYPTPASS="$(doveadm pw -p "$MAILUSERPWD" -s SHA512-CRYPT)"
 fi
 
 }
@@ -98,7 +101,7 @@ CreateMailDir()
 
 }
 
-CreatePostfixFile()
+CreatePostfixMySQLFiles()
 {
 
     local CONF_ALIASES=""${VIRTUAL_DIR}"/mysql-aliases.cf"
@@ -131,7 +134,77 @@ dbname = "${VMAILDB}"
 query = SELECT * FROM users WHERE username='%u' AND domain='%d'
 EOF
 
+cd "$POSTFIX_DIR"
+mv main.cf main.cf.bak && cat <<EOF > main.cf
+
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+
+append_dot_mydomain = no
+
+readme_directory = no
+
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mydestination =
+mailbox_size_limit = 51200000
+message_size_limit = 51200000
+recipient_delimiter =
+inet_interfaces = all
+myorigin = ubuntu-server
+inet_protocols = all
+
+##### TLS parameters ######
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_use_tls=yes
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+###### SASL Auth ######
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+
+###### Use Dovecot LMTP Service to deliver Mails to Dovecot ######
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+
+##### Only allow mail transport if client is authenticated or in own network (PHP Scripts, ...) ######
+smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+###### MySQL Connection ######
+
+virtual_alias_maps = mysql:/etc/postfix/virtual/mysql-aliases.cf
+virtual_mailbox_maps = mysql:/etc/postfix/virtual/mysql-maps.cf
+virtual_mailbox_domains = mysql:/etc/postfix/virtual/mysql-domains.cf
+local_recipient_maps = $virtual_mailbox_maps
+EOF
+
 }
+
+CreateDovecotConf()
+
+{
+cd "$DOVECOT_DIR"
+mv dovecot.conf dovecot.conf.bak && cat <<EOF > dovecot.conf
+
+base_dir = /var/run/dovecot/
+
+# Greeting message for clients.
+login_greeting = Dovecot ready.
+
+!include conf.d/*.conf
+!include_try local.conf
+
+# Passdb SQL
+passdb {
+  driver = sql
+  args = /etc/dovecot/dovecot-sql.conf.ext
+}
+EOF
+
+}
+
 
 CreateMailDB()
 {
@@ -144,7 +217,7 @@ CreateMailDB()
     Q5="create table aliases (id INT UNSIGNED AUTO_INCREMENT NOT NULL, source VARCHAR(128) NOT NULL, destination VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (source, destination) );"
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
-    Q8="insert into domains (domain) values ('"$DOMAIN"‘);"
+    Q8="insert into domains (domain) values ('"$DOMAIN"');"
     Q9="insert into users (username, domain, password) values ('"$MAILUSER"', '"$DOMAIN"', '"$MAILUSERCRYPTPASS"');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
@@ -161,11 +234,12 @@ Main()
     SetMailDBName
     SetDomain
     SetMailUser
+    InstallRequiredPackage
     SetUserMailPWD
-InstallRequiredPackage
     CreateUser
     CreateMailDir
-    CreatePostfixFile
+    CreatePostfixMySQLFiles
+    CreateDovecotConf
     CreateMailDB
 }
 
