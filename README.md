@@ -28,11 +28,7 @@ If you used another value for ***vmail***, you have to adjust ***vmail*** to you
 Edit the file **10-mail.conf**
 
 	mail_home = /var/vmail/%d/%n  
-	mail_location = maildir:~/mail:LAYOUT=fs  
-	mail_uid = vmail  
-	mail_gid = vmail  
-	mail_privileged_group = vmail   
-
+	
 
 /etc/dovecot/
 
@@ -47,15 +43,6 @@ Edit the file **dovecot-sql.conf.ext**
 	SELECT username, domain, password \
 	FROM users WHERE username = '%n' AND domain = '%d'
 
-
-
-
-/etc/dovecot/conf.d/ 
-
-Edit the file **10-auth.conf**
-
-	disable_plaintext_auth = yes
-	auth_mechanisms = plain login
 	
 	
 /etc/dovecot/conf.d/
