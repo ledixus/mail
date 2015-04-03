@@ -260,8 +260,8 @@ CreateMailDB()
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
     Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS}');"
-	Q10="insert into aliases (source, destination) values ('@${DOMAIN}', '${MAILUSER}@${DOMAIN}');"
-    SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
+    Q10="insert into aliases (source, destination) values ('@${DOMAIN}', '${MAILUSER}@${DOMAIN}');"
+    SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}${Q10}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
     mysql -u root -p"${MYSQL_ROOTPWD}" -e "$SQL"
