@@ -38,7 +38,7 @@ Edit the file **10-mail.conf**
 
 Edit the file **dovecot-sql.conf.ext**
 
-#####Replace the dbname, user and password with values which you entered in the srcipt.
+#####Replace the dbname, user and password with the MySQL values you entered in the script.
 
 	driver = mysql
 	connect = host=127.0.0.1 dbname=REPLACEME user=REPLACEME password=REPLACEME
