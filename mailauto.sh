@@ -123,6 +123,7 @@ CreatePostfixMySQLFiles()
     local CONF_ALIASES=""${VIRTUAL_DIR}"/mysql-aliases.cf"
     local CONF_DOMAINS=""${VIRTUAL_DIR}"/mysql-domains.cf"
     local CONF_MAPS=""${VIRTUAL_DIR}"/mysql-maps.cf"
+    local CONF_LOGIN=""${VIRTUAL_DIR}"/sender-login-maps.cf"
 	
 
     cat <<EOF >"${CONF_ALIASES}"
@@ -130,7 +131,7 @@ user = "${VMAIL_USER}"
 password = "${VMAILPASSWD}"
 hosts = 127.0.0.1
 dbname = "${VMAILDB}"
-query = SELECT destination FROM aliases WHERE source='%s'
+query = SELECT destination FROM aliases WHERE source='%s' UNION SELECT CONCAT(username, '@', domain) AS destination FROM users WHERE CONCAT(username, '@', domain)='%s'
 EOF
 
     cat <<EOF >"${CONF_DOMAINS}"
@@ -147,6 +148,15 @@ password = "${VMAILPASSWD}"
 hosts = 127.0.0.1
 dbname = "${VMAILDB}"
 query = SELECT * FROM users WHERE username='%u' AND domain='%d'
+EOF
+
+
+    cat <<EOF >"${CONF_LOGIN}"
+user = "${VMAIL_USER}"
+password = "${VMAILPASSWD}"
+hosts = 127.0.0.1
+dbname = "${VMAILDB}"
+query = SELECT concat(username, '@', domain) FROM users WHERE username='%u' AND domain='%d'
 EOF
 
 cd "$POSTFIX_DIR"
@@ -193,6 +203,10 @@ virtual_alias_maps = mysql:/etc/postfix/virtual/mysql-aliases.cf
 virtual_mailbox_maps = mysql:/etc/postfix/virtual/mysql-maps.cf
 virtual_mailbox_domains = mysql:/etc/postfix/virtual/mysql-domains.cf
 local_recipient_maps = $virtual_mailbox_maps
+
+smtpd_sender_login_maps = mysql:/etc/postfix/virtual/sender-login-maps.cf
+smtpd_sender_restrictions = permit_mynetworks, reject_non_fqdn_sender, reject_sender_login_mismatch, permit_sasl_authenticated
+
 EOF
 
 }
@@ -217,6 +231,17 @@ passdb {
   driver = sql
   args = /etc/dovecot/dovecot-sql.conf.ext
 }
+namespace inbox {
+    mailbox Spam {
+        auto = subscribe
+        special_use = \Junk
+    }
+
+    mailbox Entwürfe { 
+        auto = create 
+        special_use = \Drafts  
+    }
+}
 EOF
 
 }
@@ -235,6 +260,7 @@ CreateMailDB()
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
     Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS}');"
+	Q10="insert into aliases (source, destination) values ('@${DOMAIN}', '${MAILUSER}@${DOMAIN}');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
