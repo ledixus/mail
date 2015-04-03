@@ -48,7 +48,7 @@ SetDomain()
 
     #read -p "Please enter your domain (e.g. example.com): " DOMAIN
 	
-	while [[ -z "${DOMAIN}"]] || [[ "${DOMAIN}" = *[^a-z0-9-.]* ]];do
+    while [[ -z "${DOMAIN}"]] || [[ "${DOMAIN}" = *[^a-z0-9-.]* ]];do
     read -p "Please enter your domain (e.g. example.com): " DOMAIN
 done
 
@@ -235,7 +235,7 @@ CreateMailDB()
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
-    Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS#{SHA512-CRYPT}}');"
+    Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS}');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
