@@ -87,7 +87,9 @@ SetUserMailPWD()
 {
 #Set the password for the previous mail account
 
+    while [[ -z "${MAILUSERPWD}" ]];do
     read -p "Please enter a password for the mail account itself: " MAILUSERPWD 
+done
 
     if [[ -n "$MAILUSERPWD" ]]; then
     MAILUSERCRYPTPASS="$(doveadm pw -p "$MAILUSERPWD" -s SHA512-CRYPT)"
@@ -281,7 +283,7 @@ CreateMailDB()
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}${Q10}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
-    mysql -u root -p"${MYSQL_ROOTPWD}" -e "$SQL"
+    mysql -u root -p"${MYSQL_ROOTPWD}" -e "${SQL}"
 
 }
 
@@ -292,19 +294,19 @@ EditConfigFiles()
 #Edit line in 15-lda.conf
 
     sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/g' /etc/dovecot/conf.d/15-lda.conf
-	
+
 #Edit lines in 10-auth.conf
 
     sed -i 's/!include auth-system.conf.ext/#!include auth-system.conf.ext/g' /etc/dovecot/conf.d/10-auth.conf
-	sed -i 's/#disable_plaintext_auth.*/disable_plaintext_auth = yes/g' /etc/dovecot/conf.d/10-auth.conf
+    sed -i 's/#disable_plaintext_auth.*/disable_plaintext_auth = yes/g' /etc/dovecot/conf.d/10-auth.conf
     sed -i 's/auth_mechanisms.*/auth_mechanisms = plain login/g' /etc/dovecot/conf.d/10-auth.conf
 	
 #Edit lines in 10-mail.conf
 
-	sed -i 's/mail_location = mbox.*/mail_location = maildir:~/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
-	sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
-	sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
-	sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/mail_location = mbox.*/mail_location = maildir:~/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
 	
 #Edit lines in dovecot-sql.conf.ext
 
@@ -312,11 +314,11 @@ EditConfigFiles()
     sed -i 's/#connect =.*/connect = host=127.0.0.1 dbname='"${VMAILDB}"' user='"${VMAIL_USER}"' password='"${VMAILPASSWD}"'/g' /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#default_pass_scheme =.*/default_pass_scheme = SHA512-CRYPT/g' /etc/dovecot/dovecot-sql.conf.ext
 
-	sed -i 's/#password_query = \/password_query = \/g' /etc/dovecot/dovecot-sql.conf.ext
-	sed -i 's/#SELECT username, domain, password \/SELECT username, domain, password \/g' /etc/dovecot/dovecot-sql.conf.ext
-	sed -i 's/#FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = '%d'/g' /etc/dovecot/dovecot-sql.conf.ext
-	sed -i 's/#iterate_query = SELECT username, domain FROM users/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
-	
+    sed -i 's/#password_query = \\/password_query = \\/g' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#  SELECT username, domain, password \\/  SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/  FROM users WHERE username = '%n' AND domain = %d'/g" /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
+
 	
 }
 
