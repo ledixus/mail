@@ -29,7 +29,10 @@ SetDBPassword()
 {
 #Set the user password for the MySQL mail database
 
+    #read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
+    while [[ -z "${VMAILPASSWD}" ]];do
     read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
+done
 }
 
 SetMailDBName()
@@ -48,7 +51,7 @@ SetDomain()
 
     #read -p "Please enter your domain (e.g. example.com): " DOMAIN
 	
-    while [[ -z "${DOMAIN}"]] || [[ "${DOMAIN}" = *[^a-z0-9-.]* ]];do
+    while [[ -z "${DOMAIN}" ]] || [[ "${DOMAIN}" = *[^a-z0-9-.]* ]];do
     read -p "Please enter your domain (e.g. example.com): " DOMAIN
 done
 
