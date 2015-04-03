@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VIRTUAL_DIR="/etc/postfix/virtual"
 POSTFIX_DIR="/etc/postfix"
+VIRTUAL_DIR="${POSTFIX_DIR}/virtual"
 DOVECOT_DIR="/etc/dovecot"
 
 
@@ -17,43 +17,59 @@ IsRoot()
 
 SetDBUsername()
 {
+#Set the username for the MySQL mail database
 
     local DEFAULT_USER="vmail"
 
-#Set the user for the DB
-    read -p "Please enter a username for your Mail-DB, default is [$DEFAULT_USER]: " VMAIL_USER
+    read -p "Please enter a username for your MySQL mail database, default is [$DEFAULT_USER]: " VMAIL_USER
     VMAIL_USER=${VMAIL_USER:-$DEFAULT_USER}
 }
 
 SetDBPassword()
 {
-#Set the password and the name for mail database
-    read -p "Please enter a new password for your Mail-DB: " VMAILPASSWD
+#Set the user password for the MySQL mail database
+
+    read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
 }
 
 SetMailDBName()
 {
+#Set a name for MySQL mail database
 
     local DEFAULT_DB="vmail"
 
-    read -p "Please enter a name for your Mail-DB, default is [$DEFAULT_DB]: " VMAILDB
+    read -p "Please enter a name for your MySQL mail database, default is [$DEFAULT_DB]: " VMAILDB
     VMAILDB=${VMAILDB:-$DEFAULT_DB}
 }
 
 SetDomain()
 {
+#Set the domain
+
+    #read -p "Please enter your domain (e.g. example.com): " DOMAIN
+	
+	while [[ -z "${DOMAIN}"]] || [[ "${DOMAIN}" = *[^a-z0-9-.]* ]];do
     read -p "Please enter your domain (e.g. example.com): " DOMAIN
+done
 
 }
 
 SetMailUser()
 {
+#Set the mail account for the mail system
 
+    #read -p "Please enter a name for the mail account (e.g. for test@example.org you have to enter test): " MAILUSER
+
+    while [[ -z "${MAILUSER}" ]] || [[ "${MAILUSER}" = *[^a-z0-9]* ]];do
     read -p "Please enter a name for the mail account (e.g. for test@example.org you have to enter test): " MAILUSER
+done
+
+
 }
 
 SetUserMailPWD()
 {
+#Set the password for the previous mail account
 
     read -p "Please enter a password for the mail account itself: " MAILUSERPWD 
 
@@ -67,7 +83,8 @@ fi
 InstallRequiredPackage()
 {
 
-# Install the required packages
+#Install the required packages
+
     local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql php5 php5-mysql)
 
     apt-get -y install ${INSTALL_PACKAGES[*]}
@@ -75,10 +92,9 @@ InstallRequiredPackage()
 
 CreateUser()
 {
+#Add the user for the mail enviroment
 
     local VMAIL_DIR="/var/vmail"
-
-#Add the user for the mail enviroment
 
     if [[ $? -eq 0 ]]
     then
@@ -90,7 +106,7 @@ CreateUser()
 
 CreateMailDir()
 {
-
+#create the postfix virtual dir
 
     if [[ ! -d ${VIRTUAL_DIR} ]]
     then 
@@ -103,12 +119,12 @@ CreateMailDir()
 
 CreatePostfixMySQLFiles()
 {
+#create the files for /etc/postfix/virtual
 
     local CONF_ALIASES=""${VIRTUAL_DIR}"/mysql-aliases.cf"
     local CONF_DOMAINS=""${VIRTUAL_DIR}"/mysql-domains.cf"
     local CONF_MAPS=""${VIRTUAL_DIR}"/mysql-maps.cf"
-
-#create the files for /etc/postfix/virtual
+	
 
     cat <<EOF >"${CONF_ALIASES}"
 user = "${VMAIL_USER}"
@@ -183,8 +199,9 @@ EOF
 }
 
 CreateDovecotConf()
-
 {
+#Backup and create the dovecot config file
+
 cd "$DOVECOT_DIR"
 mv dovecot.conf dovecot.conf.bak && cat <<EOF > dovecot.conf
 
@@ -208,8 +225,8 @@ EOF
 
 CreateMailDB()
 {
-    
 #SQL commands
+
     Q1="create database "${VMAILDB}";"
     Q2="use "${VMAILDB}";"
     Q3="create table users (id INT UNSIGNED AUTO_INCREMENT NOT NULL, username VARCHAR(128) NOT NULL, domain VARCHAR(128) NOT NULL, password VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (username, domain) );"
@@ -218,7 +235,7 @@ CreateMailDB()
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
-    Q9="insert into users (username, domain, password) values ('"$MAILUSER"', '"$DOMAIN"', '"$MAILUSERCRYPTPASS"');"
+    Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS#{SHA512-CRYPT}}');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
