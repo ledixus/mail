@@ -122,7 +122,7 @@ Edit the file **10-ssl.conf**
 
 Edit the file **master.cf**
 
-Delete the complete "submission" Block including the -o parameters and replace with it the following block
+Delete the complete "submission" Block including the -o parameters and replace it with the following block
 
 	submission inet n       -       -       -       -       smtpd -v
   	-o syslog_name=postfix/submission
