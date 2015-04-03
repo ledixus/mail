@@ -97,8 +97,10 @@ Edit the file **10-master.conf**
 
 Edit the file **15-lda.conf**
 
-	set a adress if the mail transport isnt successful
+Set an email adress if the mail transport isn't successful
+
 	postmaster_address =
+
 
 
 /etc/dovecot/conf.d/
