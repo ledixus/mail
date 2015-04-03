@@ -59,7 +59,7 @@ SetMailUser()
 #Set the mail account for the mail system
 
 
-    while ! [[ "${MAILUSER}" =~ ^[a-z0-9]{2,}$ ]]
+    while ! [[ "${MAILUSER}" =~ ^[a-z0-9._-]{2,}$ ]]
     read -p "Please enter a name for the mail account (e.g. for test@example.org you have to enter test): " MAILUSER
 done
 
