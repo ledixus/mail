@@ -285,6 +285,26 @@ CreateMailDB()
 
 }
 
+EditConFiles()
+
+{
+#Edit line in dovecot-sql.conf.ext
+	sed s/#iterate_query = SELECT username, domain FROM users/iterate_query = SELECT username, domain FROM users/g /etc/dovecot/dovecot-sql.conf.ext
+#Edit line in 10-auth.conf 
+    sed s/!include auth-system.conf.ext/#!include auth-system.conf.ext/g /etc/dovecot/conf.d/10-auth.conf
+#Edit line in 15-lda.conf
+    sed s/postmaster_address =/postmaster_adress = "${MAILUSER}"@"${DOMAIN}"/g /etc/dovecot/conf.d/15-lda.conf
+	
+	
+	
+	
+	
+	
+}
+
+
+
+
 Main()
 {
     IsRoot

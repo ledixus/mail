@@ -47,10 +47,7 @@ Edit the file **dovecot-sql.conf.ext**
 	SELECT username, domain, password \
 	FROM users WHERE username = '%n' AND domain = '%d'
 
-#####change
-	#iterate_query = SELECT username, domain FROM users
-#####to
-	iterate_query = SELECT username, domain FROM users
+
 
 
 /etc/dovecot/conf.d/ 
@@ -60,10 +57,6 @@ Edit the file **10-auth.conf**
 	disable_plaintext_auth = yes
 	auth_mechanisms = plain login
 	
-#####change
-	iterate_query = SELECT username, domain FROM users
-#####to
-	#iterate_query = SELECT username, domain FROM users
 	
 /etc/dovecot/conf.d/
 
@@ -92,16 +85,6 @@ Edit the file **10-master.conf**
     }
     user = vmail
 	}
-
-/etc/dovecot/conf.d/
-
-Edit the file **15-lda.conf**
-
-Set an email adress if the mail transport isn't successful
-
-	postmaster_address =
-
-
 
 /etc/dovecot/conf.d/
 
