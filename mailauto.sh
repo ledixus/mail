@@ -1,7 +1,24 @@
 #!/bin/bash
 
+# Half automated mail server installation script.
+# Copyright (C) <2015>  <Stefan Dietrich>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 POSTFIX_DIR="/etc/postfix"
-VIRTUAL_DIR="${POSTFIX_DIR}/virtual"
+VIRTUAL_DIR=""${POSTFIX_DIR}"/virtual"
 DOVECOT_DIR="/etc/dovecot"
 
 
@@ -35,7 +52,7 @@ SetDBPassword()
 
 SetMailDBName()
 {
-#Set a name for MySQL mail database
+#Set a name for the MySQL mail database
 
     local DEFAULT_DB="vmail"
 
@@ -48,7 +65,7 @@ SetDomain()
 #Set the domain
 
 
-    while ! [[ "${DOMAIN}" =~ ^[a-zA-Z0-9.-]{2,}$ ]]
+    while ! [[ "${DOMAIN}" =~ ^[a-zA-Z0-9.-]{2,}$ ]];do
     read -p "Please enter your domain (e.g. example.com): " DOMAIN
 done
 
@@ -59,7 +76,7 @@ SetMailUser()
 #Set the mail account for the mail system
 
 
-    while ! [[ "${MAILUSER}" =~ ^[a-z0-9._-]{2,}$ ]]
+    while ! [[ "${MAILUSER}" =~ ^[a-z0-9._-]{2,}$ ]];do
     read -p "Please enter a name for the mail account (e.g. for test@example.org you have to enter test): " MAILUSER
 done
 
@@ -259,8 +276,8 @@ CreateMailDB()
     Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
-    Q9="insert into users (username, domain, password) values ('${MAILUSER}', '${DOMAIN}', '${MAILUSERCRYPTPASS}');"
-    Q10="insert into aliases (source, destination) values ('@${DOMAIN}', '${MAILUSER}@${DOMAIN}');"
+    Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAIN}"', '"${MAILUSERCRYPTPASS}"');"
+    Q10="insert into aliases (source, destination) values ('@"${DOMAIN}"', '"${MAILUSER}"@"${DOMAIN}"');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}${Q10}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
