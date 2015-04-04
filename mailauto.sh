@@ -296,6 +296,7 @@ cp /etc/dovecot/conf.d/15-lda.conf /etc/dovecot/conf.d/15-lda.conf.bac
 cp /etc/dovecot/conf.d/10-auth.conf /etc/dovecot/conf.d/10-auth.conf.bac
 cp /etc/dovecot/conf.d/10-mail.conf /etc/dovecot/conf.d/10-mail.conf.bac
 cp /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql.conf.ext.bac
+cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit line in 15-lda.conf
 
@@ -309,7 +310,7 @@ cp /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql.conf.ext.bac
 
 #Edit lines in 10-mail.conf
 
-    sed -i "s/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g" /etc/dovecot/conf.d/10-mail.conf
+    sed -i "s/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs'\n'mail_home = /var/vmail/%d/%n/g" /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
@@ -324,6 +325,13 @@ cp /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql.conf.ext.bac
     sed -i 's/#  SELECT username, domain, password \\/  SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
     sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/  FROM users WHERE username = '%n' AND domain = %d'/g" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
+	
+#Edit lines in d 10-ssl.conf
+
+   sed -i 's/#ssl =.*/ssl = required/g' /etc/dovecot/conf.d/10-ssl.conf
+   sed -i 's/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/g' /etc/dovecot/conf.d/10-ssl.conf
+   sed -i 's/#ssl_cipher_list =.*/ssl_cipher_list = EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA/g' /etc/dovecot/conf.d/10-ssl.conf
+   
 
 }
 

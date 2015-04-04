@@ -23,13 +23,6 @@ At the moment it isn't complete and it needs a bit more testing.
 
 If you used another value for ***vmail***, you have to adjust ***vmail*** to your value.
 
-/etc/dovecot/conf.d/
-
-Edit the file **10-mail.conf**
-
-	mail_home = /var/vmail/%d/%n  
-	
-
 	
 /etc/dovecot/conf.d/
 
@@ -63,14 +56,8 @@ Edit the file **10-master.conf**
 
 Edit the file **10-ssl.conf**
 
-	ssl = required
-	ssl_cert = </etc/dovecot/dovecot.pem
-	ssl_key = </etc/dovecot/private/dovecot.pem
-	ssl_cipher_list = EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA
-	
-	ssl_protocols = !SSLv2 !SSLv3
-	
-	can cause problems:
+			
+	only set this if you're using Dovecot 2.2.6 or higher
 	ssl_prefer_server_ciphers = yes
 	
 
