@@ -30,20 +30,6 @@ Edit the file **10-mail.conf**
 	mail_home = /var/vmail/%d/%n  
 	
 
-/etc/dovecot/
-
-Edit the file **dovecot-sql.conf.ext**
-
-#####Replace the dbname, user and password with the MySQL values you entered in the script.
-
-	driver = mysql
-	connect = host=127.0.0.1 dbname=REPLACEME user=REPLACEME password=REPLACEME
-	default_pass_scheme = SHA512-CRYPT
-	password_query = \
-	SELECT username, domain, password \
-	FROM users WHERE username = '%n' AND domain = '%d'
-
-	
 	
 /etc/dovecot/conf.d/
 
