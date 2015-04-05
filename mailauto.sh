@@ -313,7 +313,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 #Edit lines in 10-mail.conf
 
     sed -i 's/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
-	sed -i "s/mail_location = maildir:~\/mail:LAYOUT=fs/a mail_home = \/var\/vmail\/%d\/%n/g" /etc/dovecot/conf.d/10-mail.conf
+    sed -i "/mail_location = maildir:~\/mail:LAYOUT=fs/ a mail_home = \/var\/vmail\/%d\/%n/" /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
