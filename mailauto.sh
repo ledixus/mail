@@ -38,7 +38,7 @@ SetDBUsername()
 
     local DEFAULT_USER="vmail"
 
-    read -p "Please enter a username for your MySQL mail database, default is [$DEFAULT_USER]: " VMAIL_USER
+    read -p "Please enter a username for your MySQL mail database, default is ["${DEFAULT_USER}"]: " VMAIL_USER
     VMAIL_USER=${VMAIL_USER:-$DEFAULT_USER}
 }
 
@@ -46,7 +46,9 @@ SetDBPassword()
 {
 #Set the user password for the MySQL mail database
 
+    while [[ -z "${VMAILPASSWD}" ]];do
     read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
+done
     
 }
 
@@ -56,7 +58,7 @@ SetMailDBName()
 
     local DEFAULT_DB="vmail"
 
-    read -p "Please enter a name for your MySQL mail database, default is [$DEFAULT_DB]: " VMAILDB
+    read -p "Please enter a name for your MySQL mail database, default is ["${DEFAULT_DB}"]: " VMAILDB
     VMAILDB=${VMAILDB:-$DEFAULT_DB}
 }
 
@@ -88,7 +90,7 @@ SetUserMailPWD()
 #Set the password for the mail account
 
     
-    read -p "Please enter a password for the mail account itself: " MAILUSERPWD 
+    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAIN}" account: " MAILUSERPWD 
 
 
     if [[ -n "$MAILUSERPWD" ]]; then
@@ -275,7 +277,7 @@ CreateMailDB()
     Q3="create table users (id INT UNSIGNED AUTO_INCREMENT NOT NULL, username VARCHAR(128) NOT NULL, domain VARCHAR(128) NOT NULL, password VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (username, domain) );"
     Q4="create table domains (domain VARCHAR(128) NOT NULL, UNIQUE (domain));"
     Q5="create table aliases (id INT UNSIGNED AUTO_INCREMENT NOT NULL, source VARCHAR(128) NOT NULL, destination VARCHAR(128) NOT NULL, UNIQUE (id), PRIMARY KEY (source, destination) );"
-    Q6="GRANT ALL ON "$VMAILDB".* TO '"$VMAIL_USER"'@'localhost' IDENTIFIED BY '"$VMAILPASSWD"' WITH GRANT OPTION;"
+    Q6="GRANT ALL ON "${VMAILDB}".* TO '"${VMAIL_USER}"'@'localhost' IDENTIFIED BY '"${VMAILPASSWD}"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
     Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAIN}"', '"${MAILUSERCRYPTPASS}"');"
@@ -310,7 +312,8 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit lines in 10-mail.conf
 
-    sed -i "s/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs'\n'mail_home = /var/vmail/%d/%n/g" /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
+	sed -i "s/mail_location = maildir:~\/mail:LAYOUT=fs/a mail_home = \/var\/vmail\/%d\/%n/g" /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
