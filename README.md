@@ -57,7 +57,8 @@ Edit the file **10-master.conf**
 Edit the file **10-ssl.conf**
 
 			
-	only set this if you're using Dovecot 2.2.6 or higher
+***Only set this if you're using Dovecot 2.2.6 or higher!***
+
 	ssl_prefer_server_ciphers = yes
 	
 

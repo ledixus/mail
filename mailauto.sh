@@ -34,11 +34,11 @@ IsRoot()
 
 SetDBUsername()
 {
-#Set the username for the MySQL mail database
+#Set the username for the MySQL mail database and for the system
 
     local DEFAULT_USER="vmail"
 
-    read -p "Please enter a username for your MySQL mail database, default is ["${DEFAULT_USER}"]: " VMAIL_USER
+    read -p "Please enter a username (it will be used for the MySQL mail database and as systemuser for the mail system), default is ["${DEFAULT_USER}"]: " VMAIL_USER
     VMAIL_USER=${VMAIL_USER:-$DEFAULT_USER}
 }
 
@@ -148,42 +148,42 @@ CreatePostfixMySQLFiles()
 	
 
     cat <<EOF >"${CONF_ALIASES}"
-user = "${VMAIL_USER}"
-password = "${VMAILPASSWD}"
+user = ${VMAIL_USER}
+password = ${VMAILPASSWD}
 hosts = 127.0.0.1
-dbname = "${VMAILDB}"
+dbname = ${VMAILDB}
 query = SELECT destination FROM aliases WHERE source='%s' UNION SELECT CONCAT(username, '@', domain) AS destination FROM users WHERE CONCAT(username, '@', domain)='%s'
 EOF
 
     cat <<EOF >"${CONF_DOMAINS}"
-user = "${VMAIL_USER}"
-password = "${VMAILPASSWD}"
+user = ${VMAIL_USER}
+password = ${VMAILPASSWD}
 hosts = 127.0.0.1
-dbname = "${VMAILDB}"
+dbname = ${VMAILDB}
 query = SELECT * FROM domains WHERE domain='%s'
 EOF
 
     cat <<EOF >"${CONF_MAPS}"
-user = "${VMAIL_USER}"
-password = "${VMAILPASSWD}"
+user = ${VMAIL_USER}
+password = ${VMAILPASSWD}
 hosts = 127.0.0.1
-dbname = "${VMAILDB}"
+dbname = ${VMAILDB}
 query = SELECT * FROM users WHERE username='%u' AND domain='%d'
 EOF
 
 
     cat <<EOF >"${CONF_LOGIN}"
-user = "${VMAIL_USER}"
-password = "${VMAILPASSWD}"
+user = ${VMAIL_USER}
+password = ${VMAILPASSWD}
 hosts = 127.0.0.1
-dbname = "${VMAILDB}"
+dbname = ${VMAILDB}
 query = SELECT concat(username, '@', domain) FROM users WHERE username='%u' AND domain='%d'
 EOF
 
 cd "$POSTFIX_DIR"
 mv main.cf main.cf.bak && cat <<EOF > main.cf
 
-smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+smtpd_banner = \$myhostname ESMTP \$mail_name
 biff = no
 
 append_dot_mydomain = no
@@ -196,7 +196,8 @@ mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
-myorigin = ubuntu-server
+mydomain = "${DOMAIN}"
+myorigin = \$mydomain
 inet_protocols = all
 
 ##### TLS parameters ######
@@ -223,7 +224,7 @@ smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, rej
 virtual_alias_maps = mysql:/etc/postfix/virtual/mysql-aliases.cf
 virtual_mailbox_maps = mysql:/etc/postfix/virtual/mysql-maps.cf
 virtual_mailbox_domains = mysql:/etc/postfix/virtual/mysql-domains.cf
-local_recipient_maps = $virtual_mailbox_maps
+local_recipient_maps = \$virtual_mailbox_maps
 
 smtpd_sender_login_maps = mysql:/etc/postfix/virtual/sender-login-maps.cf
 smtpd_sender_restrictions = permit_mynetworks, reject_non_fqdn_sender, reject_sender_login_mismatch, permit_sasl_authenticated
@@ -258,7 +259,7 @@ namespace inbox {
         special_use = \Junk
     }
 
-    mailbox Entwürfe { 
+    mailbox Drafts { 
         auto = create 
         special_use = \Drafts  
     }
@@ -312,8 +313,8 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit lines in 10-mail.conf
 
-    sed -i 's/mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
-    sed -i "/mail_location = maildir:~\/mail:LAYOUT=fs/ a mail_home = \/var\/vmail\/%d\/%n/" /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/^mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i "/^mail_location = maildir:~\/mail:LAYOUT=fs/ a mail_home = \/var\/vmail\/%d\/%n/" /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_privileged_group =/mail_privileged_group = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
@@ -325,8 +326,8 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
     sed -i 's/#default_pass_scheme =.*/default_pass_scheme = SHA512-CRYPT/g' /etc/dovecot/dovecot-sql.conf.ext
 
     sed -i 's/#password_query = \\/password_query = \\/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#  SELECT username, domain, password \\/  SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/  FROM users WHERE username = '%n' AND domain = %d'/g" /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#  SELECT username, domain, password \\/SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = %d'/g" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
 	
 #Edit lines in d 10-ssl.conf
