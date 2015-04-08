@@ -240,6 +240,11 @@ CreateDovecotConf()
 cd "$DOVECOT_DIR"
 mv dovecot.conf dovecot.conf.bak && cat <<EOF > dovecot.conf
 
+# Enable installed protocols
+!include_try /usr/share/dovecot/protocols.d/*.protocol
+
+listen = *, ::
+
 base_dir = /var/run/dovecot/
 
 # Greeting message for clients.
