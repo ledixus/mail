@@ -196,7 +196,7 @@ mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
-mydomain = "${DOMAIN}"
+mydomain = ${DOMAIN}
 myorigin = \$mydomain
 inet_protocols = all
 
@@ -303,7 +303,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit line in 15-lda.conf
 
-    sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/g' /etc/dovecot/conf.d/15-lda.conf
+    sed -i 's/^#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/g' /etc/dovecot/conf.d/15-lda.conf
 
 #Edit lines in 10-auth.conf
 
@@ -327,7 +327,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
     sed -i 's/#password_query = \\/password_query = \\/g' /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#  SELECT username, domain, password \\/SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = %d'/g" /etc/dovecot/dovecot-sql.conf.ext
+    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = '%d'/g" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
 	
 #Edit lines in d 10-ssl.conf
