@@ -191,14 +191,13 @@ append_dot_mydomain = no
 readme_directory = no
 
 mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-mydestination = $myhostname, localhost.${DOMAIN}, localhost
+mydestination = \$myhostname, localhost.${DOMAIN}, localhost
 mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
 mydomain = ${DOMAIN}
 myorigin = \$mydomain
-myhostname = mail.${DOMAIN}
 inet_protocols = all
 
 ##### TLS parameters ######
@@ -307,9 +306,9 @@ cp /etc/dovecot/conf.d/10-mail.conf /etc/dovecot/conf.d/10-mail.conf.bac
 cp /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql.conf.ext.bac
 cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
-#Edit line in 15-lda.conf
+#Edit line in 15-lda.conf (needs a fix)
 
-    sed -i 's/^#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/g' /etc/dovecot/conf.d/15-lda.conf
+    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/' /etc/dovecot/conf.d/15-lda.conf
 
 #Edit lines in 10-auth.conf
 
@@ -319,7 +318,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit lines in 10-mail.conf
 
-    sed -i 's/^mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i 's/^mail_location = mbox.*/mail_location = maildir:~\/mail:LAYOUT=fs/' /etc/dovecot/conf.d/10-mail.conf
     sed -i "/^mail_location = maildir:~\/mail:LAYOUT=fs/ a mail_home = \/var\/vmail\/%d\/%n/" /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_uid =/mail_uid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
     sed -i 's/#mail_gid =/mail_gid = '"${VMAIL_USER}"'/g' /etc/dovecot/conf.d/10-mail.conf
@@ -327,14 +326,14 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit lines in dovecot-sql.conf.ext
 
-    sed -i 's/#driver =.*/driver = mysql/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#connect =.*/connect = host=127.0.0.1 dbname='"${VMAILDB}"' user='"${VMAIL_USER}"' password='"${VMAILPASSWD}"'/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#default_pass_scheme =.*/default_pass_scheme = SHA512-CRYPT/g' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#driver =.*/driver = mysql/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#connect =.*/connect = host=127.0.0.1 dbname='"${VMAILDB}"' user='"${VMAIL_USER}"' password='"${VMAILPASSWD}"'/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#default_pass_scheme =.*/default_pass_scheme = SHA512-CRYPT/' /etc/dovecot/dovecot-sql.conf.ext
 
-    sed -i 's/#password_query = \\/password_query = \\/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#  SELECT username, domain, password \\/SELECT username, domain, password \\/g' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = '%d'/g" /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/g' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#password_query = \\/password_query = \\/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#  SELECT username, domain, password \\/SELECT username, domain, password \\/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = '%d'/" /etc/dovecot/dovecot-sql.conf.ext
+    sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/' /etc/dovecot/dovecot-sql.conf.ext
 	
 #Edit lines in d 10-ssl.conf
 
