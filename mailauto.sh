@@ -191,13 +191,14 @@ append_dot_mydomain = no
 readme_directory = no
 
 mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-mydestination =
+mydestination = $myhostname, localhost.${DOMAIN}, localhost
 mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
 mydomain = ${DOMAIN}
 myorigin = \$mydomain
+myhostname = mail.${DOMAIN}
 inet_protocols = all
 
 ##### TLS parameters ######
