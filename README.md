@@ -120,7 +120,7 @@ example.org		 | TXT   | v=spf1 mx -all
 
 #####Script was tested under Debian 7.8 with these program versions:
 
-Programm              |     Version        |
+Program              |     Version        |
 ----------------------|--------------------|
 postfix               | 2.9.6-2            |
 postfix-mysql         | 2.9.6-2            |
