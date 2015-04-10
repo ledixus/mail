@@ -18,11 +18,16 @@ You can find the complete tutorial here <https://thomas-leister.de/internet/mail
 
 At the moment it isn't complete and it needs a bit more testing.
 
+#####For postfix setup use ```Internet-Site``` and enter your ```domain```
 
-## After the script was successful
+--
+
+### After the script was successful
+--
 
 If you used another value for ***vmail***, you have to adjust ***vmail*** to your value.
 
+--
 
 /etc/dovecot/conf.d/
 
@@ -34,7 +39,7 @@ Change the line in **15-lda.conf**
 
 	postmaster_adress = yourmail@example.com
 
-
+--
 	
 /etc/dovecot/conf.d/
 
@@ -64,6 +69,7 @@ Edit the file **10-master.conf** and change these sections like this:
      user = vmail
 	}
 
+--
 /etc/dovecot/conf.d/
 
 Edit the file **10-ssl.conf**
@@ -73,7 +79,7 @@ Edit the file **10-ssl.conf**
 
 	ssl_prefer_server_ciphers = yes
 	
-
+--
 /etc/posfix/
 
 Edit the file **master.cf**
@@ -88,23 +94,47 @@ Delete the complete "submission" block including the -o parameters and replace i
   	  -o smtpd_sasl_security_options=noanonymous
   	  -o smtpd_sasl_auth_enable=yes
   	  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+--
   	
 **Make sure that you have set correct DNS Records. Here is an example.**
 
 Host             | Type  | Data                         | TTL
 -----------------|-------|------------------------------|--------
 example.org      | A     | 10.20.30.40                  | 
-imap.example.org | CNAME | example.org                  |
-smtp.example.org | CNAME | example.org                  |
+mail.example.org | A     | 10.20.30.40                  |
 example.org      | PTR   | 40.30.20.10.in-addr.arpa     |
-example.org      | MX    | example.org.                 | 10
-example.org		 | TXT   | v=spf1 a mx ptr ip4:10.20.30.40 ptr:example.org mx:example.org -all
+example.org      | MX    | mail.example.org             | 10
+example.org		 | TXT   | v=spf1 mx -all
 
 ***Replace example.org with your domain and 10.20.30.40 with your server IP.***
 
------
+--
+
 ***And don't forget to open the ports 143 and 587.***
 
------
-  	          
-#####If everything is done, restart dovecot and postfix.
+-- 
+ 	          
+#####If everything is done, restart dovecot and postfix.#####
+
+--
+
+#####Script was tested under Debian 7.8 with these program versions:
+
+Programm              |     Version        |
+----------------------|--------------------|
+postfix               | 2.9.6-2            |
+postfix-mysql         | 2.9.6-2            |
+mysql-common          | 5.5.41-0+wheezy1   | 
+mysql-server          | 5.5.41-0+wheezy1   | 
+mysql-server-5.5      | 5.5.41-0+wheezy1   | 
+mysql-server-core-5.5 | 5.5.41-0+wheezy1   |
+dovecot-common        | 1:2.1.7-7+deb7u1   | 
+dovecot-core          | 1:2.1.7-7+deb7u1   |
+dovecot-gssapi        | 1:2.1.7-7+deb7u1   |
+dovecot-imapd         | 1:2.1.7-7+deb7u1   |
+dovecot-ldap          | 1:2.1.7-7+deb7u1   | 
+dovecot-lmtpd         | 1:2.1.7-7+deb7u1   |
+dovecot-mysql         | 1:2.1.7-7+deb7u1   | 
+dovecot-pgsql         | 1:2.1.7-7+deb7u1   | 
+dovecot-sieve         | 1:2.1.7-7+deb7u1   |
+dovecot-sqlite        | 1:2.1.7-7+deb7u1   |  

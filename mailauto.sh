@@ -105,7 +105,7 @@ InstallRequiredPackage()
 
 #Install the required packages
 
-    local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql php5 php5-mysql)
+    local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
 
     apt-get -y install ${INSTALL_PACKAGES[*]}
 }
@@ -198,6 +198,7 @@ recipient_delimiter =
 inet_interfaces = all
 mydomain = ${DOMAIN}
 myorigin = \$mydomain
+myhostname = mail.${DOMAIN}
 inet_protocols = all
 
 ##### TLS parameters ######
@@ -330,9 +331,9 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
     sed -i 's/#connect =.*/connect = host=127.0.0.1 dbname='"${VMAILDB}"' user='"${VMAIL_USER}"' password='"${VMAILPASSWD}"'/' /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#default_pass_scheme =.*/default_pass_scheme = SHA512-CRYPT/' /etc/dovecot/dovecot-sql.conf.ext
 
-    sed -i 's/#password_query = \\/password_query = \\/' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i 's/#  SELECT username, domain, password \\/SELECT username, domain, password \\/' /etc/dovecot/dovecot-sql.conf.ext
-    sed -i "s/#  FROM users WHERE username = '%n' AND domain = '%d'/FROM users WHERE username = '%n' AND domain = '%d'/" /etc/dovecot/dovecot-sql.conf.ext
+    sed -i '0,/#password_query = \\/s//password_query = \\/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i '0,/#  SELECT username, domain, password \\/s//SELECT username, domain, password \\/' /etc/dovecot/dovecot-sql.conf.ext
+    sed -i "0,/#  FROM users WHERE username = '%n' AND domain = '%d'/s//FROM users WHERE username = '%n' AND domain = '%d'/" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/' /etc/dovecot/dovecot-sql.conf.ext
 	
 #Edit lines in d 10-ssl.conf
