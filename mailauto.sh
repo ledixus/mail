@@ -106,7 +106,7 @@ InstallRequiredPackage()
 #Install the required packages
 
     local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
-
+    apt-get update
     apt-get -y install ${INSTALL_PACKAGES[*]}
 }
 
