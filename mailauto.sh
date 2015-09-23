@@ -103,11 +103,24 @@ fi
 InstallRequiredPackage()
 {
 
-#Install the required packages
+#Array of required packages
 
-    local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
-    apt-get update
-    apt-get -y install ${INSTALL_PACKAGES[*]}
+    local INSTALL_PACKAGES=(mysql-server dovecot-core dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
+
+#Check if packages are installed
+    for package in ${TOINSTALL[*]}
+	do
+  	 if [ $(dpkg-query -l $package 2>/dev/null | grep "ii" | cut -d ' ' -f1) ]
+	then
+	 TOINSTALL=(${TOINSTALL[@]/$package})
+	fi
+    done
+
+#Install packages
+    if [ ${#TOINSTALL[@]} -gt 0 ]
+     then
+      apt-get update && apt-get install ${TOINSTALL[@]} -y
+    fi
 }
 
 CreateUser()
