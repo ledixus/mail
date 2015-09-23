@@ -108,18 +108,18 @@ InstallRequiredPackage()
     local INSTALL_PACKAGES=(mysql-server dovecot-core dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
 
 #Check if packages are installed
-    for package in ${TOINSTALL[*]}
+    for package in ${INSTALL_PACKAGES[*]}
 	do
   	 if [ $(dpkg-query -l $package 2>/dev/null | grep "ii" | cut -d ' ' -f1) ]
 	then
-	 TOINSTALL=(${TOINSTALL[@]/$package})
+	 INSTALL_PACKAGES=(${INSTALL_PACKAGES[@]/$package})
 	fi
     done
 
 #Install packages
-    if [ ${#TOINSTALL[@]} -gt 0 ]
+    if [ ${#INSTALL_PACKAGES[@]} -gt 0 ]
      then
-      apt-get update && apt-get install ${TOINSTALL[@]} -y
+      apt-get update && apt-get install ${INSTALL_PACKAGES[@]} -y
     fi
 }
 
