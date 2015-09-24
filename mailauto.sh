@@ -66,10 +66,10 @@ SetDomain()
 {
 #Try to read domain else set the domain manually
 
-    getDomain=$(dnsdomain)
+    DOMAINNAME=$(dnsdomain)
     if [ ${#getDomain} -eq 0 ]
       then
-        read -p "Please enter your domain (e.g. example.com): " getDomain
+        read -p "Please enter your domain (e.g. example.com): " DOMAINNAME
     fi
 
 }
@@ -91,7 +91,7 @@ SetUserMailPWD()
 #Set the password for the mail account
 
 
-    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAIN}" account: " MAILUSERPWD
+    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAINNAME}" account: " MAILUSERPWD
 
 
     if [[ -n "$MAILUSERPWD" ]]; then
@@ -205,14 +205,14 @@ append_dot_mydomain = no
 readme_directory = no
 
 mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-mydestination = \$myhostname, localhost.${DOMAIN}, localhost
+mydestination = \$myhostname, localhost.${DOMAINNAME}, localhost
 mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
-mydomain = ${DOMAIN}
+mydomain = ${DOMAINNAME}
 myorigin = \$mydomain
-myhostname = mail.${DOMAIN}
+myhostname = mail.${DOMAINNAME}
 inet_protocols = all
 
 ##### TLS parameters ######
@@ -301,8 +301,8 @@ CreateMailDB()
     Q6="GRANT ALL ON "${VMAILDB}".* TO '"${VMAIL_USER}"'@'localhost' IDENTIFIED BY '"${VMAILPASSWD}"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
-    Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAIN}"', '"${MAILUSERCRYPTPASS}"');"
-    Q10="insert into aliases (source, destination) values ('@"${DOMAIN}"', '"${MAILUSER}"@"${DOMAIN}"');"
+    Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAINNAME}"', '"${MAILUSERCRYPTPASS}"');"
+    Q10="insert into aliases (source, destination) values ('@"${DOMAINNAME}"', '"${MAILUSER}"@"${DOMAINNAME}"');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}${Q10}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
@@ -323,7 +323,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit line in 15-lda.conf (needs a fix)
 
-    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/' /etc/dovecot/conf.d/15-lda.conf
+    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAINNAME}"'/' /etc/dovecot/conf.d/15-lda.conf
 
 #Edit lines in 10-auth.conf
 
