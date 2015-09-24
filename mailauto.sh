@@ -49,7 +49,7 @@ SetDBPassword()
     while [[ -z "${VMAILPASSWD}" ]];do
     read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
 done
-    
+
 }
 
 SetMailDBName()
@@ -64,12 +64,13 @@ SetMailDBName()
 
 SetDomain()
 {
-#Set the domain
+#Try to read domain else set the domain manually
 
-
-    while ! [[ "${DOMAIN}" =~ ^[a-zA-Z0-9.-]{2,}$ ]];do
-    read -p "Please enter your domain (e.g. example.com): " DOMAIN
-done
+    getDomain=$(dnsdomain)
+    if [ ${#getDomain} -eq 0 ]
+      then
+        read -p "Please enter your domain (e.g. example.com): " getDomain
+    fi
 
 }
 
@@ -89,8 +90,8 @@ SetUserMailPWD()
 {
 #Set the password for the mail account
 
-    
-    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAIN}" account: " MAILUSERPWD 
+
+    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAIN}" account: " MAILUSERPWD
 
 
     if [[ -n "$MAILUSERPWD" ]]; then
@@ -142,7 +143,7 @@ CreateMailDir()
 #create the postfix virtual dir
 
     if [[ ! -d ${VIRTUAL_DIR} ]]
-    then 
+    then
 	echo "Creating the Directory ${VIRTUAL_DIR}"
 	mkdir -p "${VIRTUAL_DIR}" && chmod 660 "${VIRTUAL_DIR}" && echo "Successfully created"
 
@@ -158,7 +159,7 @@ CreatePostfixMySQLFiles()
     local CONF_DOMAINS=""${VIRTUAL_DIR}"/mysql-domains.cf"
     local CONF_MAPS=""${VIRTUAL_DIR}"/mysql-maps.cf"
     local CONF_LOGIN=""${VIRTUAL_DIR}"/sender-login-maps.cf"
-	
+
 
     cat <<EOF >"${CONF_ALIASES}"
 user = ${VMAIL_USER}
@@ -278,9 +279,9 @@ namespace inbox {
         special_use = \Junk
     }
 
-    mailbox Drafts { 
-        auto = create 
-        special_use = \Drafts  
+    mailbox Drafts {
+        auto = create
+        special_use = \Drafts
     }
 }
 EOF
@@ -348,13 +349,13 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
     sed -i '0,/#  SELECT username, domain, password \\/s//SELECT username, domain, password \\/' /etc/dovecot/dovecot-sql.conf.ext
     sed -i "0,/#  FROM users WHERE username = '%n' AND domain = '%d'/s//FROM users WHERE username = '%n' AND domain = '%d'/" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/' /etc/dovecot/dovecot-sql.conf.ext
-	
+
 #Edit lines in d 10-ssl.conf
 
    sed -i 's/#ssl =.*/ssl = required/g' /etc/dovecot/conf.d/10-ssl.conf
    sed -i 's/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/g' /etc/dovecot/conf.d/10-ssl.conf
    sed -i 's/#ssl_cipher_list =.*/ssl_cipher_list = EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA/g' /etc/dovecot/conf.d/10-ssl.conf
-   
+
 
 }
 
