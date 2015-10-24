@@ -49,7 +49,7 @@ SetDBPassword()
     while [[ -z "${VMAILPASSWD}" ]];do
     read -p "Please enter a new password for your MySQL mail database: " VMAILPASSWD
 done
-    
+
 }
 
 SetMailDBName()
@@ -64,12 +64,13 @@ SetMailDBName()
 
 SetDomain()
 {
-#Set the domain
+#Try to read domain else set the domain manually
 
-
-    while ! [[ "${DOMAIN}" =~ ^[a-zA-Z0-9.-]{2,}$ ]];do
-    read -p "Please enter your domain (e.g. example.com): " DOMAIN
-done
+    DOMAINNAME=$(dnsdomain)
+    if [ ${#getDomain} -eq 0 ]
+      then
+        read -p "Please enter your domain (e.g. example.com): " DOMAINNAME
+    fi
 
 }
 
@@ -89,8 +90,8 @@ SetUserMailPWD()
 {
 #Set the password for the mail account
 
-    
-    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAIN}" account: " MAILUSERPWD 
+
+    read -p "Please enter a password for your "${MAILUSER}"@"${DOMAINNAME}" account: " MAILUSERPWD
 
 
     if [[ -n "$MAILUSERPWD" ]]; then
@@ -103,11 +104,24 @@ fi
 InstallRequiredPackage()
 {
 
-#Install the required packages
+#Array of required packages
 
-    local INSTALL_PACKAGES=(mysql-server dovecot-common dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
-    apt-get update
-    apt-get -y install ${INSTALL_PACKAGES[*]}
+    local INSTALL_PACKAGES=(mysql-server dovecot-core dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
+
+#Check if packages are installed
+    for package in ${INSTALL_PACKAGES[*]}
+	do
+  	 if [ $(dpkg-query -l $package 2>/dev/null | grep "ii" | cut -d ' ' -f1) ]
+	then
+	 INSTALL_PACKAGES=(${INSTALL_PACKAGES[@]/$package})
+	fi
+    done
+
+#Install packages
+    if [ ${#INSTALL_PACKAGES[@]} -gt 0 ]
+     then
+      apt-get update && apt-get install ${INSTALL_PACKAGES[@]} -y
+    fi
 }
 
 CreateUser()
@@ -129,7 +143,7 @@ CreateMailDir()
 #create the postfix virtual dir
 
     if [[ ! -d ${VIRTUAL_DIR} ]]
-    then 
+    then
 	echo "Creating the Directory ${VIRTUAL_DIR}"
 	mkdir -p "${VIRTUAL_DIR}" && chmod 660 "${VIRTUAL_DIR}" && echo "Successfully created"
 
@@ -145,7 +159,7 @@ CreatePostfixMySQLFiles()
     local CONF_DOMAINS=""${VIRTUAL_DIR}"/mysql-domains.cf"
     local CONF_MAPS=""${VIRTUAL_DIR}"/mysql-maps.cf"
     local CONF_LOGIN=""${VIRTUAL_DIR}"/sender-login-maps.cf"
-	
+
 
     cat <<EOF >"${CONF_ALIASES}"
 user = ${VMAIL_USER}
@@ -191,14 +205,14 @@ append_dot_mydomain = no
 readme_directory = no
 
 mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-mydestination = \$myhostname, localhost.${DOMAIN}, localhost
+mydestination = \$myhostname, localhost.${DOMAINNAME}, localhost
 mailbox_size_limit = 51200000
 message_size_limit = 51200000
 recipient_delimiter =
 inet_interfaces = all
-mydomain = ${DOMAIN}
+mydomain = ${DOMAINNAME}
 myorigin = \$mydomain
-myhostname = mail.${DOMAIN}
+myhostname = mail.${DOMAINNAME}
 inet_protocols = all
 
 ##### TLS parameters ######
@@ -265,9 +279,9 @@ namespace inbox {
         special_use = \Junk
     }
 
-    mailbox Drafts { 
-        auto = create 
-        special_use = \Drafts  
+    mailbox Drafts {
+        auto = create
+        special_use = \Drafts
     }
 }
 EOF
@@ -287,8 +301,8 @@ CreateMailDB()
     Q6="GRANT ALL ON "${VMAILDB}".* TO '"${VMAIL_USER}"'@'localhost' IDENTIFIED BY '"${VMAILPASSWD}"' WITH GRANT OPTION;"
     Q7="FLUSH PRIVILEGES;"
     Q8="insert into domains (domain) values ('"$DOMAIN"');"
-    Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAIN}"', '"${MAILUSERCRYPTPASS}"');"
-    Q10="insert into aliases (source, destination) values ('@"${DOMAIN}"', '"${MAILUSER}"@"${DOMAIN}"');"
+    Q9="insert into users (username, domain, password) values ('"${MAILUSER}"', '"${DOMAINNAME}"', '"${MAILUSERCRYPTPASS}"');"
+    Q10="insert into aliases (source, destination) values ('@"${DOMAINNAME}"', '"${MAILUSER}"@"${DOMAINNAME}"');"
     SQL="${Q1}${Q2}${Q3}${Q4}${Q5}${Q6}${Q7}${Q8}${Q9}${Q10}"
 
     read -p "Please enter your Mysql root passwort: " MYSQL_ROOTPWD
@@ -309,7 +323,7 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
 #Edit line in 15-lda.conf (needs a fix)
 
-    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAIN}"'/' /etc/dovecot/conf.d/15-lda.conf
+    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAINNAME}"'/' /etc/dovecot/conf.d/15-lda.conf
 
 #Edit lines in 10-auth.conf
 
@@ -335,13 +349,13 @@ cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
     sed -i '0,/#  SELECT username, domain, password \\/s//SELECT username, domain, password \\/' /etc/dovecot/dovecot-sql.conf.ext
     sed -i "0,/#  FROM users WHERE username = '%n' AND domain = '%d'/s//FROM users WHERE username = '%n' AND domain = '%d'/" /etc/dovecot/dovecot-sql.conf.ext
     sed -i 's/#iterate_query = SELECT username.*/iterate_query = SELECT username, domain FROM users/' /etc/dovecot/dovecot-sql.conf.ext
-	
+
 #Edit lines in d 10-ssl.conf
 
    sed -i 's/#ssl =.*/ssl = required/g' /etc/dovecot/conf.d/10-ssl.conf
    sed -i 's/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/g' /etc/dovecot/conf.d/10-ssl.conf
    sed -i 's/#ssl_cipher_list =.*/ssl_cipher_list = EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA/g' /etc/dovecot/conf.d/10-ssl.conf
-   
+
 
 }
 
