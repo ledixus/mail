@@ -321,9 +321,9 @@ cp /etc/dovecot/conf.d/10-mail.conf /etc/dovecot/conf.d/10-mail.conf.bac
 cp /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql.conf.ext.bac
 cp /etc/dovecot/conf.d/10-ssl.conf /etc/dovecot/conf.d/10-ssl-conf.bac
 
-#Edit line in 15-lda.conf (needs a fix)
+#Edit line in 15-lda.conf
 
-    #sed -i 's/#postmaster_address.*/postmaster_adress = '"${MAILUSER}"'@'"${DOMAINNAME}"'/' /etc/dovecot/conf.d/15-lda.conf
+    sed -i 's/#postmaster_address.*/postmaster_address = '"${MAILUSER}@${DOMAINNAME}"'/g' /etc/dovecot/conf.d/15-lda.conf
 
 #Edit lines in 10-auth.conf
 
