@@ -31,18 +31,6 @@ If you used another value for ***vmail***, you have to adjust ***vmail*** to you
 
 /etc/dovecot/conf.d/
 
-Change the line in **15-lda.conf**
-
-	#postmaster_adress = 
-
-***to***
-
-	postmaster_adress = yourmail@example.com
-
---
-	
-/etc/dovecot/conf.d/
-
 Edit the file **10-master.conf** and change these sections like this:
 
 	service auth {
