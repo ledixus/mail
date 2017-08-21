@@ -107,6 +107,10 @@ InstallRequiredPackage()
 #Array of required packages
 
     local INSTALL_PACKAGES=(mysql-server dovecot-core dovecot-imapd dovecot-mysql dovecot-lmtpd postfix postfix-mysql)
+    #Changes for Debian 9
+    if [[ $(lsb_release -cs) == "stretch" ]]; then
+      INSTALL_PACKAGES[0] ="default-mysql-server"
+    fi
 
 #Check if packages are installed
     for package in ${INSTALL_PACKAGES[*]}
